@@ -1,0 +1,34 @@
+.
+├── data
+│   ├── processed
+│   │   ├── channels_to_crawl.xlsx
+│   │   └── channels.txt
+│   └── raw
+├── file.py
+├── labeling
+│   └── amharic_ner.conll
+├── LICENSE
+├── models
+│   ├── fine_tuned_xlm_roberta
+│   └── model_comparison.md
+├── notebooks
+│   ├── 01_data_ingestion.ipynb
+│   ├── 02_preprocessing.ipynb
+│   ├── 03_labeling_visual.ipynb
+│   ├── 04_finetune_ner.ipynb
+│   ├── 05_model_interpretability.ipynb
+│   └── 06_vendor_scorecard.ipynb
+├── outputs
+│   ├── interpretability_report.md
+│   └── metrics_report.json
+├── README.md
+├── requirements.txt
+├── scraping_session.session
+├── scripts
+│   ├── preprocess.py
+│   └── telegram_scraper.py
+├── struture.txt
+└── vendor_scorecard
+    └── scorecard_results.csv
+
+11 directories, 21 files

@@ -1,30 +1,31 @@
 from telethon import TelegramClient
-import csv
 import os
+import csv
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv('.env')
+# === Load environment variables from .env file ===
+load_dotenv('../.env')
 api_id = int(os.getenv('TG_API_ID'))
 api_hash = os.getenv('TG_API_HASH')
 phone = os.getenv('phone')  # Optional: used for login if needed
 
-# CSV file containing Telegram channel usernames
-CHANNEL_CSV = '../data/processed/channels_to_crawl.xlsx'   # This should contain @channel_username in each row
+# === File paths ===
+CHANNEL_TXT = '../data/processed/channels.txt'   # Plain text file: one @channel_username per line
 OUTPUT_CSV = '../data/processed/telegram_data.csv'
 MEDIA_DIR = '../data/processed/photos'
 
-# Function to read channel usernames from a CSV
+# === Read channel usernames from a plain text file ===
 def load_channel_usernames(filename):
-    channels = []
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"❌ Channel list file not found: {filename}")
+    
     with open(filename, 'r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if row:  # skip empty lines
-                channels.append(row[0].strip())
+        channels = [line.strip() for line in f if line.strip()]
+    
+    print(f"✅ Loaded {len(channels)} channels from {filename}")
     return channels
 
-# Scrape data from a single channel
+# === Scrape messages from a single channel ===
 async def scrape_channel(client, channel_username, writer, media_dir):
     try:
         entity = await client.get_entity(channel_username)
@@ -45,27 +46,28 @@ async def scrape_channel(client, channel_username, writer, media_dir):
                 media_path
             ])
     except Exception as e:
-        print(f"Failed to scrape {channel_username}: {e}")
+        print(f"⚠️ Failed to scrape {channel_username}: {e}")
 
-# Main execution
+# === Main execution ===
 client = TelegramClient('scraping_session', api_id, api_hash)
 
 async def main():
     await client.start()
-    
     os.makedirs(MEDIA_DIR, exist_ok=True)
 
     with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(['Channel Title', 'Channel Username', 'ID', 'Message', 'Date', 'Media Path'])
+        writer.writerow(['Channel Title', 'Channel Username', 'Message ID', 'Message Text', 'Date', 'Media Path'])
 
-        # Load channel usernames from CSV
-        channels = load_channel_usernames(CHANNEL_CSV)
+        # Load channels from text file
+        channels = load_channel_usernames(CHANNEL_TXT)
         for channel in channels:
-            print(f"Scraping {channel}...")
+            print(f"📥 Scraping {channel}...")
             await scrape_channel(client, channel, writer, MEDIA_DIR)
-            print(f"Finished scraping {channel}")
+            print(f"✅ Finished scraping {channel}")
 
+# === Run the script ===
 with client:
     client.loop.run_until_complete(main())
+
 print("✅ Scraping completed successfully! Data saved to", OUTPUT_CSV)
